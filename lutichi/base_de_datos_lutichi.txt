@@ -1,0 +1,42 @@
+CREATE DATABASE Lutichi;
+USE Lutichi;
+CREATE TABLE vendedor(
+    id_vendedor int AUTO_INCREMENT PRIMARY KEY,
+    nombre varchar(50) not null,
+    apellido varchar(100) not null,
+    direccion varchar(100),
+    telefono varchar(15),
+);
+
+CREATE TABLE cliente(
+    id_cliente int AUTO_INCREMENT PRIMARY KEY,
+    cedula int not null,
+    nombre varchar(50) not null,
+    email varchar(30),
+    telefono varchar(15),
+    fecha_registro timestamp DEFAULT CURRENT_timestamp()
+);
+
+CREATE TABLE producto(
+    id_producto int AUTO_INCREMENT PRIMARY KEY,
+    nombre varchar(100),
+    autor varchar(50),
+    genero varchar(25) not null,
+    precio int,
+    cantidad int not null,
+    disponibilidad varchar(2), 
+    descripcion text,
+    imagen_url varchar(255)
+);
+
+CREATE TABLE factura(
+    id_factura int AUTO_INCREMENT PRIMARY KEY,
+    id_cliente int,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_clientes),
+    id_vendedor int,
+    FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor),
+    id_producto int,
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto),
+    cantidad int not null,
+    preciototal double
+)
