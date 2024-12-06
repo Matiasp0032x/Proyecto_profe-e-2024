@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import mysql.connector
 
 app = Flask(__name__)
@@ -35,7 +35,7 @@ def index():
         cursor.execute("""
             SELECT * FROM producto 
             WHERE genero = %s
-            LIMIT 5
+            LIMIT 4
         """, (categoria[0],))
         libros_por_categoria[categoria[0]] = cursor.fetchall()
 
@@ -66,6 +66,11 @@ def usuarios():
         db.close()
         lutichi1 = 'lutichi1'
     return render_template('usuarios.html', clientes=clientes, lutichi1=lutichi1)
+
+@app.route('/contactos')
+def contactos():
+    lutichi1 = 'lutichi1'
+    return render_template('contacto.html',lutichi1=lutichi1)
 
 @app.route('/personal')
 def personal():
@@ -366,22 +371,39 @@ def eliminar_producto(id_producto):
 
     return redirect(url_for('inventario'))
 
-@app.route('/factura')
+@app.route('/factura', methods=['GET', 'POST'])
 def facturas():
     try:
         db = get_db_connection()
         cursor = db.cursor()
-        # Consulta para listar facturas
-        query = """SELECT f.id_factura, c.nombre AS cliente, v.nombre AS vendedor, 
-                            p.nombre AS producto, f.cantidad, 
-                            (f.cantidad * p.precio) AS precio_total
-                   FROM factura f
-                   INNER JOIN cliente c ON f.id_cliente = c.id_cliente
-                   INNER JOIN vendedor v ON f.id_vendedor = v.id_vendedor
-                   INNER JOIN producto p ON f.id_producto = p.id_producto ORDER BY f.id_factura ASC"""
-        cursor.execute(query)
+
+        # Verifica si hay un filtro aplicado por cliente
+        cliente_filtro = request.form.get('cliente_filtro', None)
+
+        if cliente_filtro:
+            query = """SELECT f.id_factura, c.nombre AS cliente, v.nombre AS vendedor, 
+                        p.nombre AS producto, f.cantidad, 
+                        (f.cantidad * p.precio) AS precio_total
+                        FROM factura f
+                        INNER JOIN cliente c ON f.id_cliente = c.id_cliente
+                        INNER JOIN vendedor v ON f.id_vendedor = v.id_vendedor
+                        INNER JOIN producto p ON f.id_producto = p.id_producto
+                        WHERE c.nombre LIKE %s
+                        ORDER BY f.id_factura ASC"""
+            cursor.execute(query, (f"%{cliente_filtro}%",))
+        else:
+            query = """SELECT f.id_factura, c.nombre AS cliente, v.nombre AS vendedor, 
+                        p.nombre AS producto, f.cantidad, 
+                        (f.cantidad * p.precio) AS precio_total
+                        FROM factura f
+                        INNER JOIN cliente c ON f.id_cliente = c.id_cliente
+                        INNER JOIN vendedor v ON f.id_vendedor = v.id_vendedor
+                        INNER JOIN producto p ON f.id_producto = p.id_producto
+                        ORDER BY f.id_factura ASC"""
+            cursor.execute(query)
+
         facturas = cursor.fetchall()
-        
+
         # Consultas auxiliares para los formularios
         cursor.execute("SELECT id_cliente, nombre FROM cliente")
         clientes = cursor.fetchall()
@@ -393,11 +415,20 @@ def facturas():
         productos = cursor.fetchall()
 
         lutichi1 = 'lutichi1'
-        return render_template('facturas.html', facturas=facturas, clientes=clientes, vendedores=vendedores, productos=productos, lutichi1=lutichi1)
+        return render_template(
+            'facturas.html', 
+            facturas=facturas, 
+            clientes=clientes, 
+            vendedores=vendedores, 
+            productos=productos, 
+            lutichi1=lutichi1, 
+            cliente_filtro=cliente_filtro
+        )
     except Exception as e:
         return f"Error: {str(e)}"
     finally:
         db.close()
+
 
 @app.route('/crear_factura', methods=['POST'])
 def crear_factura():
@@ -457,6 +488,7 @@ def crear_factura():
         db.close()
 
     return redirect(url_for('facturas'))
+
 
 @app.route('/buscar_categoria', methods=['GET'])
 def buscar_categoria():

@@ -89,6 +89,15 @@
             </div>
         </nav>
     </header>
+    <div class="container my-4">
+        <!-- Formulario de búsqueda -->
+        <form action="/buscar_facturas" method="post" class="mb-3">
+            <div class="input-group">
+                <input type="text" class="form-control" name="nombre_cliente" placeholder="Buscar por cliente" required>
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+        </form>
+    </div>
     
     <div class="container my-4">
         <!-- Título principal -->
@@ -160,7 +169,7 @@
                     <!-- Campo Cliente -->
                     <div class="mb-3">
                         <label for="cliente">Cliente</label>
-                        <select name="cliente" id="cliente" required>
+                        <select class="form-control" name="cliente" id="cliente" required>
                             <option value="" selected>Seleccione un cliente</option>
                             {% for cliente in clientes %}
                             <option value="{{ cliente[0] }}">{{ cliente[1] }}</option>
@@ -171,7 +180,7 @@
                     <!-- Campo Vendedor -->
                     <div class="mb-3">
                         <label for="vendedor">Vendedor</label>
-                        <select name="vendedor" id="vendedor" required>
+                        <select  class="form-control" name="vendedor" id="vendedor" required>
                             <option value="" selected>Seleccione un vendedor</option>
                             {% for vendedor in vendedores %}
                             <option value="{{ vendedor[0] }}">{{ vendedor[1] }}</option>
